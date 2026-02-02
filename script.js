@@ -176,6 +176,13 @@ function generateSentence() {
   return tokens;
 }
 
+function pickOtherFromFolder(folder, currentFilename) {
+  const files = manifest[folder];
+  if (!files || files.length === 0) return null;
+  const others = files.length > 1 ? files.filter(f => f !== currentFilename) : files;
+  return pick(others);
+}
+
 function renderSentence(container, tokens) {
   container.innerHTML = '';
   for (const { folder, filename } of tokens) {
@@ -183,6 +190,16 @@ function renderSentence(container, tokens) {
     img.src = imageUrl(folder, filename);
     img.alt = '';
     img.className = 'word-image';
+    img.dataset.folder = folder;
+    img.dataset.filename = filename;
+    img.title = 'Click to replace with another ' + folder;
+    img.addEventListener('click', () => {
+      const newFilename = pickOtherFromFolder(folder, img.dataset.filename);
+      if (newFilename) {
+        img.dataset.filename = newFilename;
+        img.src = imageUrl(folder, newFilename);
+      }
+    });
     container.appendChild(img);
   }
 }
