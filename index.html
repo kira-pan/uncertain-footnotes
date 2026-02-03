@@ -19,6 +19,12 @@
       padding: 2rem;
       background: #f8f6f2;
     }
+    #app {
+      width: min(900px, 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     h1 {
       font-size: 1.5rem;
       font-weight: 500;
@@ -30,8 +36,10 @@
       flex-direction: column;
       align-items: center;
       gap: 1.5rem;
-      min-height: 120px;
+      height: 180px;
+      overflow: hidden;
       margin-bottom: 2rem;
+      width: 100%;
     }
     .sentence-row {
       display: flex;
@@ -66,12 +74,135 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+
+    /* Intro overlay */
+    #intro {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f6f2;
+      z-index: 10;
+      transition: opacity 600ms ease;
+    }
+    #intro-inner {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 2rem;
+      color: #333;
+      letter-spacing: 0.02em;
+      user-select: none;
+    }
+    #intro-cursor {
+      display: inline-block;
+      width: 0.6ch;
+      margin-left: 0.1ch;
+      animation: blink 900ms step-end infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    body.intro-done #intro {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body:not(.intro-done) #app {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #app {
+      transition: opacity 500ms ease;
+      opacity: 1;
+    }
+
+    /* Instruction banner (only at beginning) */
+    #instruction-banner {
+      position: fixed;
+      left: 50%;
+      top: 1.25rem;
+      transform: translateX(-50%);
+      background: rgba(248, 246, 242, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.10);
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      color: #333;
+      font-size: 1.02rem;
+      line-height: 1.25;
+      text-align: center;
+      max-width: min(64ch, calc(100vw - 2rem));
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 450ms ease, transform 450ms ease;
+      z-index: 9;
+    }
+    body.intro-done #instruction-banner {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    body.hide-instructions #instruction-banner {
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Uncertainty</h1>
-  <div id="sentence"></div>
-  <button type="button" id="regenerate-btn">Regenerate</button>
+  <div id="intro" aria-hidden="true">
+    <div id="intro-inner">
+      <span id="intro-text"></span><span id="intro-cursor">|</span>
+    </div>
+  </div>
+
+  <div id="instruction-banner" role="note" aria-live="polite">
+    Click on a phrase to switch it out, or regenerate a whole new sentence.
+  </div>
+
+  <main id="app">
+    <div id="sentence"></div>
+    <button type="button" id="regenerate-btn">Regenerate</button>
+  </main>
+
+  <script>
+    (function () {
+      const textEl = document.getElementById('intro-text');
+      const introEl = document.getElementById('intro');
+      const bannerEl = document.getElementById('instruction-banner');
+      const fullText = 'Poetic.... Uncertainty';
+      const typeDelayMs = 85;
+      const afterDelayMs = 450;
+
+      if (!textEl || !introEl) return;
+
+      let i = 0;
+      let finished = false;
+
+      function finish() {
+        if (finished) return;
+        finished = true;
+        document.body.classList.add('intro-done');
+        if (bannerEl) {
+          const hide = () => document.body.classList.add('hide-instructions');
+          // Hide on first interaction (click a word or hit Regenerate)
+          document.addEventListener('click', hide, { once: true, capture: true });
+          // Also auto-hide after a short moment
+          window.setTimeout(hide, 6500);
+        }
+      }
+
+      function tick() {
+        textEl.textContent = fullText.slice(0, i);
+        i += 1;
+        if (i <= fullText.length) {
+          window.setTimeout(tick, typeDelayMs);
+        } else {
+          window.setTimeout(finish, afterDelayMs);
+        }
+      }
+
+      introEl.addEventListener('click', finish);
+      window.setTimeout(tick, 250);
+    })();
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

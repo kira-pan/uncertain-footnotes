@@ -6,6 +6,31 @@
 const IMAGE_BASE = 'public/images/word_cutouts';
 const MAX_PPS = 2;
 
+const SOUND_BASE = 'public/sounds';
+const SOUND_FILES = {
+  pop: 'pop_sound.mp3',
+  whoosh: 'whoosh.wav',
+  chime: 'chime.wav',
+  minecraft: 'minecraft.wav',
+  click: 'click.wav'
+};
+
+const SOUND_BY_FOLDER = {
+  noun: 'pop',
+  NP: 'pop',
+  verb: 'whoosh',
+  VP: 'whoosh',
+  determiner: 'chime',
+  preposition: 'chime',
+  'prepositional phrase': 'chime',
+  adverb: 'minecraft',
+  adjective: 'click'
+};
+
+const SOUND_SRC_BY_KEY = Object.fromEntries(
+  Object.entries(SOUND_FILES).map(([key, file]) => [key, `${SOUND_BASE}/${file}`])
+);
+
 // Inline manifest fallback when fetch fails (e.g. file://)
 const FALLBACK_MANIFEST = {
   "adjective": ["Screenshot 2026-02-02 at 8.59.42 AM.png", "Screenshot 2026-02-02 at 9.00.33 AM.png", "Screenshot 2026-02-02 at 9.02.15 AM.png", "Screenshot 2026-02-02 at 9.03.07 AM.png", "Screenshot 2026-02-02 at 9.08.44 AM.png", "Screenshot 2026-02-02 at 9.09.03 AM.png", "Screenshot 2026-02-02 at 9.55.20 AM.png", "Screenshot 2026-02-02 at 9.55.38 AM.png", "Screenshot 2026-02-02 at 9.55.54 AM.png", "Screenshot 2026-02-02 at 9.59.23 AM.png"],
@@ -183,6 +208,15 @@ function pickOtherFromFolder(folder, currentFilename) {
   return pick(others);
 }
 
+function playSoundForFolder(folder) {
+  const key = SOUND_BY_FOLDER[folder];
+  if (!key) return;
+  const src = SOUND_SRC_BY_KEY[key];
+  if (!src) return;
+  const audio = new Audio(src);
+  audio.play().catch(() => {});
+}
+
 function renderSentence(container, tokens) {
   container.innerHTML = '';
   for (const { folder, filename } of tokens) {
@@ -198,6 +232,7 @@ function renderSentence(container, tokens) {
       if (newFilename) {
         img.dataset.filename = newFilename;
         img.src = imageUrl(folder, newFilename);
+        playSoundForFolder(folder);
       }
     });
     container.appendChild(img);
