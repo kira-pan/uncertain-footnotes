@@ -19,4 +19,4 @@ Different parts of speech include: determiner, adjective, noun, verb, adverb, pr
 
 ## Credit
 
-© Kira Pan, DESINV 23
+© Kira Pan, Jacobs Institute for Design Innovation
